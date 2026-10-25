@@ -372,27 +372,46 @@ export function WalletProvider({ children }: { children: ReactNode }) {
         formatted
       );
 
-      if (switchError.code === 4902 && expectedChainId === 31337) {
+      if (switchError.code === 4902) {
         try {
-          await ethereum.request({
-            method: "wallet_addEthereumChain",
-            params: [
-              {
-                chainId: hexChainId,
-                chainName: "Hardhat Local Network",
-                nativeCurrency: {
-                  name: "Ethereum",
-                  symbol: "ETH",
-                  decimals: 18,
+          if (expectedChainId === 31337) {
+            await ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: hexChainId,
+                  chainName: "Hardhat Local Network",
+                  nativeCurrency: {
+                    name: "Ethereum",
+                    symbol: "ETH",
+                    decimals: 18,
+                  },
+                  rpcUrls: ["http://127.0.0.1:8545"],
                 },
-                rpcUrls: ["http://127.0.0.1:8545"],
-              },
-            ],
-          });
+              ],
+            });
+          } else if (expectedChainId === 11155111) {
+            await ethereum.request({
+              method: "wallet_addEthereumChain",
+              params: [
+                {
+                  chainId: hexChainId,
+                  chainName: "Sepolia Test Network",
+                  nativeCurrency: {
+                    name: "Sepolia Ether",
+                    symbol: "SEP",
+                    decimals: 18,
+                  },
+                  rpcUrls: ["https://rpc.sepolia.org"],
+                  blockExplorerUrls: ["https://sepolia.etherscan.io"],
+                },
+              ],
+            });
+          }
         } catch (addError: any) {
           const addFormatted = formatWalletError(addError);
           setError(
-            addFormatted.message || "Failed to add local network to MetaMask."
+            addFormatted.message || "Failed to add network to MetaMask."
           );
         }
       } else if (switchError.code === 4001) {

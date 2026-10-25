@@ -16,6 +16,41 @@ import { config } from "../config/env";
 import { DocumentRecord, NormalizedAuditEvent } from "../types";
 import { AppError } from "../middleware/error-handler";
 
+// Embedded ABI interfaces ensure standalone deployment readiness when build artifacts are not mounted
+const FALLBACK_DOCUMENT_REGISTRY_ABI = [
+  "function registerDocument(bytes32 documentId, bytes32 documentHash, string calldata ipfsCid) external",
+  "function getDocument(bytes32 documentId) external view returns (tuple(bytes32 documentId, address owner, bytes32 documentHash, string ipfsCid, uint256 registeredAt, bool revoked))",
+  "function isRevoked(bytes32 documentId) external view returns (bool)",
+  "function getUserDocuments(address user) external view returns (bytes32[])",
+  "function revokeDocument(bytes32 documentId) external",
+  "event DocumentRegistered(bytes32 indexed documentId, address indexed owner, bytes32 documentHash, string ipfsCid, uint256 timestamp)",
+  "event DocumentRevoked(bytes32 indexed documentId, address indexed owner, uint256 timestamp)",
+  "error InvalidDocumentId()",
+  "error InvalidDocumentHash()",
+  "error InvalidIpfsCid()",
+  "error DocumentAlreadyExists(bytes32 documentId)",
+  "error DocumentNotFound(bytes32 documentId)",
+  "error NotDocumentOwner(bytes32 documentId, address caller)",
+  "error DocumentAlreadyRevoked(bytes32 documentId)"
+];
+
+const FALLBACK_ACCESS_CONTROL_ABI = [
+  "function hasAccess(bytes32 documentId, address verifier) external view returns (bool)",
+  "function isDirectAccessGranted(bytes32 documentId, address verifier) external view returns (bool)",
+  "function documentRegistry() external view returns (address)",
+  "function grantAccess(bytes32 documentId, address verifier) external",
+  "function revokeAccess(bytes32 documentId, address verifier) external",
+  "event AccessGranted(bytes32 indexed documentId, address indexed verifier, address indexed owner, uint256 timestamp)",
+  "event AccessRevoked(bytes32 indexed documentId, address indexed verifier, address indexed owner, uint256 timestamp)",
+  "error NotDocumentOwner(bytes32 documentId, address caller)",
+  "error DocumentNotFound(bytes32 documentId)",
+  "error DocumentIsRevoked(bytes32 documentId)",
+  "error AccessAlreadyGranted(bytes32 documentId, address verifier)",
+  "error AccessNotGranted(bytes32 documentId, address verifier)",
+  "error InvalidDocumentId()",
+  "error InvalidVerifierAddress()"
+];
+
 class BlockchainService {
   private provider: ethers.JsonRpcProvider;
   private documentRegistryContract: ethers.Contract | null = null;
@@ -30,7 +65,7 @@ class BlockchainService {
   }
 
   /**
-   * Initializes contract instances using compiled Hardhat artifacts.
+   * Initializes contract instances using compiled Hardhat artifacts or fallback ABIs.
    */
   public async init(): Promise<void> {
     if (this.isInitialized) return;
@@ -70,14 +105,32 @@ class BlockchainService {
       path.resolve(process.cwd(), "artifacts/contracts"),
       path.resolve(process.cwd(), "../blockchain/artifacts/contracts"),
       path.resolve(__dirname, "../../../blockchain/artifacts/contracts"),
+      path.resolve(process.cwd(), "deployments/localhost"),
+      path.resolve(process.cwd(), "deployments/sepolia"),
+      path.resolve(process.cwd(), "../blockchain/deployments/localhost"),
+      path.resolve(process.cwd(), "../blockchain/deployments/sepolia"),
+      path.resolve(__dirname, "../../../blockchain/deployments/localhost"),
+      path.resolve(__dirname, "../../../blockchain/deployments/sepolia"),
     ];
 
     for (const root of possibleRoots) {
       const fullPath = path.join(root, contractArtifactSubpath);
       if (fs.existsSync(fullPath)) {
-        const json = JSON.parse(fs.readFileSync(fullPath, "utf-8"));
-        return json.abi;
+        try {
+          const json = JSON.parse(fs.readFileSync(fullPath, "utf-8"));
+          if (json.abi) return json.abi;
+        } catch {
+          // Continue to next root if parse fails
+        }
       }
+    }
+
+    // Standalone deployment fallback when filesystem artifacts are not present
+    if (contractArtifactSubpath.includes("DocumentRegistry")) {
+      return FALLBACK_DOCUMENT_REGISTRY_ABI;
+    }
+    if (contractArtifactSubpath.includes("AccessControl")) {
+      return FALLBACK_ACCESS_CONTROL_ABI;
     }
 
     throw new Error(`Contract artifact not found: ${contractArtifactSubpath}`);

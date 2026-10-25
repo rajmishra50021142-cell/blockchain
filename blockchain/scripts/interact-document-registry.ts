@@ -16,11 +16,15 @@ export async function interactWithDocumentRegistry(
 
   let contractAddress = existingContractAddress;
 
+  const network = await ethers.provider.getNetwork();
+  const isSepolia = Number(network.chainId) === 11155111;
+  const targetDir = isSepolia ? "sepolia" : "localhost";
+
   if (!contractAddress) {
-    // Attempt to load from deployments/localhost/DocumentRegistry.json
+    // Attempt to load from deployments/<targetDir>/DocumentRegistry.json
     const deploymentPath = path.resolve(
       __dirname,
-      "../deployments/localhost/DocumentRegistry.json"
+      `../deployments/${targetDir}/DocumentRegistry.json`
     );
 
     if (fs.existsSync(deploymentPath)) {

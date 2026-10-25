@@ -1,4 +1,4 @@
-import { ethers } from "hardhat";
+import { ethers, network as hardhatNetwork } from "hardhat";
 import * as fs from "fs";
 import * as path from "path";
 
@@ -8,17 +8,35 @@ export async function deployDocumentRegistry(): Promise<{
   blockNumber: number;
   deployer: string;
 }> {
-  console.log("Starting DocumentRegistry deployment to local blockchain...\n");
+  const network = await ethers.provider.getNetwork();
+  const chainId = Number(network.chainId);
+  const isSepolia = hardhatNetwork.name === "sepolia" || chainId === 11155111;
+  const targetDirName = isSepolia ? "sepolia" : "localhost";
+  const networkDisplayName = isSepolia ? "Ethereum Sepolia Testnet" : "local blockchain";
 
-  const [deployer] = await ethers.getSigners();
+  console.log(`Starting DocumentRegistry deployment to ${networkDisplayName}...\n`);
+
+  const signers = await ethers.getSigners();
+  if (!signers || signers.length === 0) {
+    if (isSepolia) {
+      throw new Error(
+        "No deployer signer configured for Sepolia. Ensure SEPOLIA_RPC_URL and SEPOLIA_DEPLOYER_PRIVATE_KEY are set in your environment."
+      );
+    }
+    throw new Error("No deployer signer available on connected network.");
+  }
+
+  const [deployer] = signers;
   const deployerAddress = await deployer.getAddress();
   const deployerBalance = await ethers.provider.getBalance(deployerAddress);
 
+  console.log(`Target Network:   ${targetDirName} (Chain ID: ${chainId})`);
   console.log(`Deployer Address: ${deployerAddress}`);
   console.log(`Deployer Balance: ${ethers.formatEther(deployerBalance)} ETH\n`);
 
-  const network = await ethers.provider.getNetwork();
-  console.log(`Connected Chain ID: ${network.chainId.toString()}`);
+  if (deployerBalance === 0n) {
+    console.warn(`[WARN] Deployer account balance is 0 ETH. Transaction may fail if gas is needed.\n`);
+  }
 
   const factory = await ethers.getContractFactory("DocumentRegistry", deployer);
   console.log("Submitting contract creation transaction...");
@@ -33,21 +51,22 @@ export async function deployDocumentRegistry(): Promise<{
     throw new Error("Deployment transaction was not found.");
   }
 
-  const receipt = await deploymentTx.wait(1);
+  const receipt = await deploymentTx.wait(isSepolia ? 2 : 1);
 
   if (!receipt) {
     throw new Error("Deployment confirmation receipt could not be obtained.");
   }
 
   console.log("\n--- DocumentRegistry Deployed Successfully ---");
+  console.log(`Network:          ${targetDirName}`);
   console.log(`Contract Address: ${contractAddress}`);
   console.log(`Transaction Hash: ${deploymentTx.hash}`);
   console.log(`Block Number:     ${receipt.blockNumber}`);
   console.log(`Gas Used:         ${receipt.gasUsed.toString()}`);
   console.log(`Deployer:         ${deployerAddress}\n`);
 
-  // Save deployment artifact to blockchain/deployments/localhost/DocumentRegistry.json
-  const deploymentsDir = path.resolve(__dirname, "../deployments/localhost");
+  // Save deployment artifact to blockchain/deployments/<targetDirName>/DocumentRegistry.json
+  const deploymentsDir = path.resolve(__dirname, `../deployments/${targetDirName}`);
   if (!fs.existsSync(deploymentsDir)) {
     fs.mkdirSync(deploymentsDir, { recursive: true });
   }
@@ -66,10 +85,11 @@ export async function deployDocumentRegistry(): Promise<{
 
   const deploymentData = {
     contractName: "DocumentRegistry",
+    network: targetDirName,
     address: contractAddress,
     transactionHash: deploymentTx.hash,
     blockNumber: receipt.blockNumber,
-    chainId: Number(network.chainId),
+    chainId: chainId,
     deployer: deployerAddress,
     deployedAt: new Date().toISOString(),
     abi,

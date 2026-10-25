@@ -5,8 +5,8 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "tsx watch src/server.ts",
-    "start": "tsx src/server.ts",
-    "build": "tsc",
+    "build": "tsc && node -e \"const fs = require('fs'); const src = 'dist/backend/src/server.js'; const dst = 'dist/server.js'; if (fs.existsSync(src)) { fs.writeFileSync(dst, 'require(\\\"./backend/src/server.js\\\");\\\\n'); }\"",
+    "start": "node dist/server.js",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test --test-concurrency=1 tests/auth.test.ts tests/ipfs.test.ts tests/documents.test.ts tests/verify.test.ts tests/audit.test.ts tests/integration.test.ts"
   },

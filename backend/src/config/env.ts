@@ -11,6 +11,8 @@ import * as crypto from "crypto";
 
 export interface BackendConfig {
   port: number;
+  host: string;
+  isProduction: boolean;
   rpcUrl: string;
   chainId: number;
   contractDocumentRegistry: string;
@@ -62,6 +64,8 @@ loadDotEnvFiles();
 
 export function resolveBackendConfig(): BackendConfig {
   const port = parseInt(process.env.PORT || "3001", 10);
+  const isProduction = process.env.NODE_ENV === "production";
+  const host = process.env.HOST || (isProduction ? "0.0.0.0" : "127.0.0.1");
   const rpcUrl = process.env.RPC_URL || "http://127.0.0.1:8545";
   const chainId = parseInt(process.env.CHAIN_ID || "31337", 10);
 
@@ -89,6 +93,8 @@ export function resolveBackendConfig(): BackendConfig {
 
   return {
     port,
+    host,
+    isProduction,
     rpcUrl,
     chainId,
     contractDocumentRegistry,

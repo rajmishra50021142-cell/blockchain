@@ -14,14 +14,18 @@ export async function interactAccessControl(): Promise<void> {
   console.log(`Verifier Address:       ${verifierAddress}`);
   console.log(`Unauthorized Address:   ${unauthorizedAddress}\n`);
 
-  // 1. Load deployment artifacts
+  // 1. Load deployment artifacts for connected network
+  const network = await ethers.provider.getNetwork();
+  const isSepolia = Number(network.chainId) === 11155111;
+  const targetDir = isSepolia ? "sepolia" : "localhost";
+
   const registryArtifactPath = path.resolve(
     __dirname,
-    "../deployments/localhost/DocumentRegistry.json"
+    `../deployments/${targetDir}/DocumentRegistry.json`
   );
   const accessControlArtifactPath = path.resolve(
     __dirname,
-    "../deployments/localhost/AccessControl.json"
+    `../deployments/${targetDir}/AccessControl.json`
   );
 
   if (!fs.existsSync(registryArtifactPath)) {

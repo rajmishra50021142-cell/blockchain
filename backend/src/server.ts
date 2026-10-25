@@ -14,9 +14,13 @@ async function main() {
   // Pre-initialize smart contract interfaces
   await blockchainService.init();
 
-  const server = app.listen(config.port, () => {
-    console.log(`[PASS] Document Locker API server listening on http://127.0.0.1:${config.port}`);
-    console.log(`       Target Chain ID: ${config.chainId}`);
+  const host = config.host;
+  const port = process.env.PORT ? parseInt(process.env.PORT, 10) : config.port;
+
+  const server = app.listen(port, host, () => {
+    console.log(`[PASS] Document Locker API server listening on http://${host}:${port}`);
+    console.log(`       Environment:      ${config.isProduction ? "production" : "development"}`);
+    console.log(`       Target Chain ID:  ${config.chainId}`);
     console.log(`       DocumentRegistry: ${config.contractDocumentRegistry || "Not configured"}`);
     console.log(`       AccessControl:    ${config.contractAccessControl || "Not configured"}`);
   });

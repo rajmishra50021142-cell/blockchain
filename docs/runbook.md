@@ -163,3 +163,64 @@ Pinata pins created during previous sessions remain pinned in Pinata Cloud. Beca
 | `Contract revert: DocumentAlreadyExists` | Re-registering the same document ID on the blockchain | Generate a fresh document ID or use the UI file uploader which generates a new ID. |
 | `Wrong network (expected 31337)` | MetaMask is connected to Mainnet, Sepolia, etc. | Switch network in MetaMask to `Hardhat Local` (RPC `http://127.0.0.1:8545`, Chain ID `31337`). |
 | `IPFS Upload 400 Bad Request` | Backend lacks valid `IPFS_JWT` credentials | Check that `IPFS_JWT` is set in `backend/.env` and possesses Pinata file pinning permissions. |
+
+---
+
+## 7. Online Deployment Guide (Sepolia Testnet + Cloud Production)
+
+This section provides the end-to-end procedure for deploying the application online without impacting or modifying the local development environment.
+
+### 7.1 Smart Contracts (Ethereum Sepolia Testnet)
+
+1. Obtain a Sepolia RPC endpoint (e.g., Alchemy or Infura) and a funded Sepolia testnet deployer account.
+2. In `blockchain/.env` (or project root `.env`):
+   ```bash
+   SEPOLIA_RPC_URL=https://eth-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_KEY
+   SEPOLIA_DEPLOYER_PRIVATE_KEY=YOUR_SEPOLIA_DEPLOYER_PRIVATE_KEY
+   ```
+3. Deploy contracts in sequence:
+   ```bash
+   cd blockchain
+   # Deploy DocumentRegistry to Sepolia:
+   npm run deploy:doc-registry:sepolia
+
+   # Deploy AccessControl to Sepolia (automatically links to newly deployed DocumentRegistry):
+   npm run deploy:access-control:sepolia
+   ```
+   *Alternatively, deploy both sequentially with:* `npm run deploy:sepolia`
+4. The deployment artifacts are saved separately to:
+   - `blockchain/deployments/sepolia/DocumentRegistry.json`
+   - `blockchain/deployments/sepolia/AccessControl.json`
+   The existing local artifacts in `blockchain/deployments/localhost/` remain unchanged.
+
+### 7.2 Backend REST API (Render / Railway / Cloud VM)
+
+1. Build & Start Commands:
+   - **Build Command:** `npm run build`
+   - **Start Command:** `npm start`
+2. Environment Variables on the Hosting Provider:
+   - `PORT`: Set by provider (or e.g. `3001`). Server automatically binds to `0.0.0.0` when `NODE_ENV=production`.
+   - `NODE_ENV=production`
+   - `CORS_ORIGIN`: Your deployed Vercel URL (e.g. `https://your-app.vercel.app` or comma-separated).
+   - `AUTH_JWT_SECRET`: 64-character random hex secret (`node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`).
+   - `RPC_URL`: `https://eth-sepolia.g.alchemy.com/v2/YOUR_ALCHEMY_KEY`
+   - `CHAIN_ID=11155111`
+   - `CONTRACT_NETWORK=sepolia`
+   - `CONTRACT_DOCUMENT_REGISTRY`: The Sepolia address from `blockchain/deployments/sepolia/DocumentRegistry.json`.
+   - `CONTRACT_ACCESS_CONTROL`: The Sepolia address from `blockchain/deployments/sepolia/AccessControl.json`.
+   - `IPFS_API_URL=https://uploads.pinata.cloud/v3/files`
+   - `IPFS_GATEWAY=https://gateway.pinata.cloud/ipfs`
+   - `IPFS_JWT`: Your server-side Pinata JWT token.
+
+### 7.3 Frontend Web Application (Vercel)
+
+1. Connect the GitHub repository to Vercel (Root Directory: `frontend`).
+2. Framework Preset: **Next.js**.
+3. Build Command: `npm run build`
+4. Public Environment Variables in Vercel Dashboard:
+   - `NEXT_PUBLIC_API_BASE_URL`: Deployed backend URL (e.g. `https://your-backend.onrender.com`).
+   - `NEXT_PUBLIC_CHAIN_ID=11155111`
+   - `NEXT_PUBLIC_CONTRACT_NETWORK=sepolia`
+   - `NEXT_PUBLIC_CONTRACT_DOCUMENT_REGISTRY`: The Sepolia address from `DocumentRegistry.json`.
+   - `NEXT_PUBLIC_CONTRACT_ACCESS_CONTROL`: The Sepolia address from `AccessControl.json`.
+5. Deploy. Users connecting via MetaMask will automatically be prompted for Sepolia Testnet.
