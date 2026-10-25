@@ -1,0 +1,36 @@
+{
+  "name": "eman-blockchain",
+  "version": "1.0.0",
+  "description": "Blockchain infrastructure and development environment for Digital Document Locker",
+  "private": true,
+  "scripts": {
+    "node": "HARDHAT_TELEMETRY_DISABLED=1 hardhat node",
+    "compile": "HARDHAT_TELEMETRY_DISABLED=1 hardhat compile",
+    "test": "HARDHAT_TELEMETRY_DISABLED=1 hardhat test",
+    "health-check": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/health-check.ts",
+    "health-check:local": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/health-check.ts --network localhost",
+    "test-tx": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/send-test-tx.ts",
+    "test-tx:local": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/send-test-tx.ts --network localhost",
+    "deploy:doc-registry": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/deploy-document-registry.ts",
+    "deploy:doc-registry:local": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/deploy-document-registry.ts --network localhost",
+    "interact:doc-registry": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/interact-document-registry.ts",
+    "interact:doc-registry:local": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/interact-document-registry.ts --network localhost",
+    "deploy:access-control": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/deploy-access-control.ts",
+    "deploy:access-control:local": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/deploy-access-control.ts --network localhost",
+    "interact:access-control": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/interact-access-control.ts",
+    "interact:access-control:local": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/interact-access-control.ts --network localhost",
+    "verify:security": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/verify-security-hardening.ts",
+    "verify:security:local": "HARDHAT_TELEMETRY_DISABLED=1 hardhat run scripts/verify-security-hardening.ts --network localhost"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^5.0.0",
+    "@types/chai": "^4.3.11",
+    "@types/mocha": "^10.0.6",
+    "@types/node": "^20.11.0",
+    "dotenv": "^16.4.5",
+    "ethers": "^6.10.0",
+    "hardhat": "^2.22.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  }
+}

@@ -1,0 +1,46 @@
+# Environment variables
+.env
+.env.*
+.env*.local
+!.env.example
+!.env.*.example
+
+# Node modules and build output
+node_modules/
+dist/
+build/
+.next/
+out/
+.vercel
+
+# Hardhat and Ethereum build artifacts
+artifacts/
+cache/
+typechain/
+typechain-types/
+
+# Logs and system files
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.DS_Store
+**/.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+*.tsbuildinfo
+
+# Keys and certificates
+*.pem
+*.key
+*.cert
+*.crt
+
+# Temporary files
+coverage/
+.nyc_output/
+scratch/

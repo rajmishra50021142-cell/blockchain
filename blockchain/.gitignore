@@ -1,0 +1,10 @@
+# Hardhat and Ethereum build artifacts
+artifacts/
+cache/
+typechain-types/
+node_modules/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
