@@ -15,7 +15,6 @@ const NAV_ITEMS: NavItem[] = [
   { name: "Documents", href: "/documents" },
   { name: "Register Document", href: "/register" },
   { name: "Verify", href: "/verify" },
-  { name: "Audit Trail", href: "/audit" },
   { name: "Wallet & Identity", href: "/wallet" },
   { name: "Configuration", href: "/settings" },
 ];

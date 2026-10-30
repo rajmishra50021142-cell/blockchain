@@ -326,21 +326,6 @@ export function DashboardView() {
             </Link>
 
             <Link
-              href="/audit"
-              className="block rounded-2xl border border-zinc-800 bg-zinc-900/30 p-4 hover:border-zinc-700 hover:bg-zinc-800/40 transition-all backdrop-blur-sm group"
-            >
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold text-zinc-200 group-hover:text-indigo-300 transition-colors">
-                  Audit Trail
-                </span>
-                <span className="text-zinc-500 font-mono">→</span>
-              </div>
-              <p className="mt-1 text-xs text-zinc-400 leading-relaxed">
-                Inspect historical on-chain event lineage for registrations, grants, and revocations.
-              </p>
-            </Link>
-
-            <Link
               href="/wallet"
               className="block rounded-2xl border border-zinc-800 bg-zinc-900/30 p-4 hover:border-zinc-700 hover:bg-zinc-800/40 transition-all backdrop-blur-sm group"
             >
